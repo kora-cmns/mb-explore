@@ -17,6 +17,16 @@ if(NOT nlohmann_json_FOUND)
     FetchContent_MakeAvailable(nlohmann_json)
 endif()
 
+# Google Test setup
+include(FetchContent)
+FetchContent_Declare(
+    googletest
+    URL https://github.com/google/googletest/archive/03597a01ee50.zip
+)
+# For Windows: Prevent overriding the parent project's compiler/linker settings
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(googletest)
+
 add_executable(explorer
     src/main.cpp
     src/musicbrainz_client.cpp
@@ -34,3 +44,30 @@ target_link_libraries(explorer PRIVATE
 target_compile_options(explorer PRIVATE
     -Wall -Wextra -Wpedantic
 )
+
+# Enable testing and add test executable
+enable_testing()
+
+add_executable(
+    url_utils_tests
+    tests/url_utils_test.cpp
+    src/url_utils.cpp  # Include source files that contain the functions being tested
+)
+
+target_include_directories(url_utils_tests PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
+target_link_libraries(url_utils_tests 
+    PRIVATE
+    gtest_main
+    CURL::libcurl
+    nlohmann_json::nlohmann_json
+)
+
+target_compile_options(url_utils_tests PRIVATE
+    -Wall -Wextra -Wpedantic
+)
+
+include(GoogleTest)
+gtest_discover_tests(url_utils_tests)
